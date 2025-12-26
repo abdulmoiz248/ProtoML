@@ -1,0 +1,28 @@
+# Core APIs
+arxiv
+groq
+google-genai
+
+# LangChain for agent conversation
+langchain
+langchain-groq
+langchain-google-genai
+
+
+
+# Embeddings & Vector Search
+sentence-transformers
+faiss-cpu
+torch
+transformers
+
+# PDF Processing
+PyMuPDF
+pdf2image
+Pillow
+
+# Utilities
+requests
+python-dotenv
+json5
+tqdm
