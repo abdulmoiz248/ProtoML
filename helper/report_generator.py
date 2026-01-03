@@ -1,3 +1,4 @@
+import time
 """
 Report Generator
 Gemini generates structured report from paper analysis
@@ -175,6 +176,11 @@ Be comprehensive, technical, and specific. This is for a portfolio project."""
                 report['final_decision_reasoning'] = paper['final_decision']['reasoning']
             
             print("✅ Structured report generated")
+            
+            # Add 1 minute delay after Gemini report generation
+            print("⏳ Waiting 60 seconds after Gemini report generation...")
+            time.sleep(60)
+            
             return report
             
         except Exception as e:

@@ -1,4 +1,5 @@
 import json
+import time
 from typing import List, Dict
 from groq import Groq
 from google import genai
@@ -168,6 +169,11 @@ Be critical and discerning in your evaluation."""
                 paper_with_score['gemini_total_score'] = weighted_score
                 
                 scored_papers.append(paper_with_score)
+                
+                # Add 1 minute delay between Gemini requests
+                if i < len(papers):  # Don't delay after last paper
+                    print(f"    ⏳ Waiting 60 seconds before next request...")
+                    time.sleep(60)
                 
             except Exception as e:
                 print(f"    ⚠️  Error scoring paper: {str(e)}")
