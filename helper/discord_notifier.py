@@ -22,23 +22,16 @@ class DiscordNotifier:
         print("\n📤 Sending report to Discord...")
         
         try:
-            # Create Discord embed
-            embed = self._create_embed(report)
+            # Send header embed with paper info
+            self._send_header_embed(report)
             
-            # Send webhook
-            payload = {
-                "username": self.username,
-                "embeds": [embed]
-            }
-            
-            response = requests.post(
-                self.webhook_url,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-                timeout=10
-            )
-            
-            response.raise_for_status()
+            # Send each section as a separate message
+            self._send_section_embed(report, "🎯 Problem", report['Problem'])
+            self._send_section_embed(report, "📊 Dataset", report['Dataset'])
+            self._send_section_embed(report, "🤖 Model & Methodology", report['Model'])
+            self._send_section_embed(report, "🔑 Key Techniques", self._format_techniques(report['KeyTechniques']))
+            self._send_section_embed(report, "💡 Why It Matters", report['WhyItMatters'])
+            self._send_section_embed(report, "🚀 Mini-Project Idea", report['MiniImplementationIdea'])
             
             print("✅ Report sent to Discord successfully")
             return True
@@ -47,14 +40,8 @@ class DiscordNotifier:
             print(f"❌ Error sending to Discord: {str(e)}")
             return False
     
-    def _create_embed(self, report: Dict) -> Dict:
-     
-        # Truncate text if too long (Discord has character limits)
-        def truncate(text: str, max_length: int = 1024) -> str:
-            if len(text) <= max_length:
-                return text
-            return text[:max_length-3] + "..."
-        
+    def _send_header_embed(self, report: Dict) -> None:
+        """Send the header embed with paper information"""
         # Color based on category
         color_map = {
             "cs.CV": 0x3498db,  # Blue for Computer Vision
@@ -71,45 +58,57 @@ class DiscordNotifier:
                           f"**Published:** {report['published']} | **Category:** {report['category']}\n"
                           f"**arXiv ID:** [{report['arxiv_id']}](https://arxiv.org/abs/{report['arxiv_id']})",
             "color": color,
-            "fields": [
-                {
-                    "name": "🎯 Problem",
-                    "value": truncate(report['Problem'], 1024),
-                    "inline": False
-                },
-                {
-                    "name": "📊 Dataset",
-                    "value": truncate(report['Dataset'], 1024),
-                    "inline": False
-                },
-                {
-                    "name": "🤖 Model & Methodology",
-                    "value": truncate(report['Model'], 1024),
-                    "inline": False
-                },
-                {
-                    "name": "🔑 Key Techniques",
-                    "value": self._format_techniques(report['KeyTechniques']),
-                    "inline": False
-                },
-                {
-                    "name": "💡 Why It Matters",
-                    "value": truncate(report['WhyItMatters'], 1024),
-                    "inline": False
-                },
-                {
-                    "name": "🚀 Mini-Project Idea",
-                    "value": truncate(report['MiniImplementationIdea'], 1024),
-                    "inline": False
-                }
-            ],
             "footer": {
                 "text": f"ProtoML • {datetime.now().strftime('%Y-%m-%d %H:%M')}"
             }
         }
         
+        payload = {
+            "username": self.username,
+            "embeds": [embed]
+        }
         
-        return embed
+        response = requests.post(
+            self.webhook_url,
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=10
+        )
+        response.raise_for_status()
+    
+    def _send_section_embed(self, report: Dict, title: str, content: str) -> None:
+        """Send a section as a separate embed"""
+        # Truncate if too long
+        if len(content) > 4000:
+            content = content[:3997] + "..."
+        
+        # Color based on category
+        color_map = {
+            "cs.CV": 0x3498db,
+            "cs.CL": 0x2ecc71,
+            "cs.LG": 0x9b59b6,
+            "q-bio.QM": 0xe74c3c,
+        }
+        color = color_map.get(report.get('category', ''), 0x95a5a6)
+        
+        embed = {
+            "title": title,
+            "description": content,
+            "color": color
+        }
+        
+        payload = {
+            "username": self.username,
+            "embeds": [embed]
+        }
+        
+        response = requests.post(
+            self.webhook_url,
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=10
+        )
+        response.raise_for_status()
     
     def _format_techniques(self, techniques) -> str:
         """Format key techniques for Discord"""
